@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peach Physiotherapy — Culture Tactics Dashboard</title>
+<style>
+  :root{
+    --peach:#F5945C; --peach-dark:#E27343; --peach-light:#FDE4D4;
+    --ink:#2B2B2B; --muted:#7A7A7A; --line:#ECE6E1; --bg:#FBF7F4; --card:#FFFFFF;
+    --green:#3FA66A; --amber:#E2A93B; --red:#D8604E; --blue:#4C84C4;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5}
+  header{background:linear-gradient(120deg,var(--peach),var(--peach-dark));color:#fff;padding:20px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  header .title h1{margin:0;font-size:21px;letter-spacing:.2px}
+  header .title p{margin:3px 0 0;font-size:13px;opacity:.92}
+  header .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:none;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--peach-dark);box-shadow:var(--shadow)}
+  .btn.ghost{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.4)}
+  .btn:hover{filter:brightness(.97)}
+  nav{display:flex;gap:4px;background:var(--card);padding:0 18px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;overflow-x:auto}
+  nav button{border:none;background:none;padding:14px 16px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button.active{color:var(--peach-dark);border-bottom-color:var(--peach)}
+  main{padding:22px 26px;max-width:1180px;margin:0 auto}
+  .tab{display:none}
+  .tab.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2.section{font-size:16px;margin:6px 0 14px;display:flex;align-items:center;gap:9px}
+  h2.section .dot{width:9px;height:9px;border-radius:50%;background:var(--peach)}
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:22px}
+  .kpi{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .kpi .value{font-size:30px;font-weight:700;margin-top:4px}
+  .kpi .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:9px}
+  .bar > span{display:block;height:100%;background:var(--green)}
+  .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--line);padding:18px;margin-bottom:18px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;cursor:pointer;user-select:none}
+  tbody tr:hover{background:var(--peach-light)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .pill.cat{background:var(--peach-light);color:var(--peach-dark)}
+  select,input[type=text],input[type=number],input[type=date],textarea{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:#fff;color:var(--ink);width:100%}
+  select.status{font-weight:700;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;-webkit-appearance:none;appearance:none;text-align:center}
+  .st-On.track,.st-Active{}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  #tacticsTable td{vertical-align:top}
+  #tacticsTable textarea{width:100%;min-height:76px;resize:vertical;line-height:1.45;font-size:13px;white-space:pre-wrap;font-family:inherit}
+  #tacticsTable td.notescell{min-width:300px;width:34%}
+  #tacticsTable input[type=text]{min-width:90px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:12px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .month{background:var(--card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden}
+  .month h3{margin:0;padding:11px 14px;background:var(--peach-light);color:var(--peach-dark);font-size:14px}
+  .month ul{margin:0;padding:10px 14px 14px 28px;font-size:13px}
+  .month li{margin-bottom:5px}
+  .evsources{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 16px}
+  .evsources a{font-size:12.5px;background:var(--peach-light);color:var(--peach-dark);padding:6px 11px;border-radius:20px;text-decoration:none;font-weight:600}
+  .evsources a:hover{background:var(--peach);color:#fff}
+  .evmonth{margin-bottom:14px}
+  .evmonth h4{margin:0 0 6px;font-size:13px;color:var(--peach-dark);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line);padding-bottom:4px}
+  .evitem{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;background:var(--card)}
+  .evitem .evdate{min-width:66px;font-weight:700;font-size:12.5px;color:var(--ink)}
+  .evitem .evbody{flex:1}
+  .evitem .evname{font-weight:600;font-size:13.5px}
+  .evitem .evmeta{font-size:12px;color:var(--muted);margin-top:2px}
+  .evtype{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:12px;background:var(--peach-light);color:var(--peach-dark);margin-left:6px}
+  .evform{display:grid;grid-template-columns:1.6fr .9fr .9fr 1.4fr auto;gap:8px;align-items:end}
+  @media(max-width:760px){.evform{grid-template-columns:1fr 1fr}}
+  .muted{color:var(--muted)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.row2{grid-template-columns:1fr}}
+  .pulsebars{display:flex;flex-direction:column;gap:10px}
+  .pulserow{display:flex;align-items:center;gap:10px}
+  .pulserow .pname{width:170px;font-size:13px}
+  .pulserow .ptrack{flex:1;height:14px;background:var(--line);border-radius:7px;overflow:hidden}
+  .pulserow .ptrack > span{display:block;height:100%}
+  .pulserow .pscore{width:46px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .help{font-size:13px;color:var(--muted);margin:-6px 0 14px}
+  .addbtn{margin-top:10px}
+  details.guide{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--card);overflow:hidden}
+  details.guide summary{padding:13px 16px;cursor:pointer;font-weight:700;font-size:14px;list-style:none;display:flex;align-items:center;gap:9px}
+  details.guide summary::-webkit-details-marker{display:none}
+  details.guide summary .chev{margin-left:auto;color:var(--muted);transition:.2s}
+  details.guide[open] summary .chev{transform:rotate(90deg)}
+  details.guide .body{padding:0 16px 16px;font-size:13.5px}
+  details.guide .body p{margin:8px 0}
+  .tagline{font-size:12px;color:var(--muted);font-style:italic}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+  .toast.show{opacity:1}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;padding:2px 6px;border-radius:6px}
+  .icon-btn:hover{background:var(--line);color:var(--red)}
+  .save-note{font-size:12px;color:var(--muted);margin:8px 0 0}
+  @media print{nav,header .toolbar,.icon-btn,.addbtn,.save-note{display:none!important}.tab{display:block!important}header{background:var(--peach)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>🍑 Peach Culture Tactics Dashboard</h1>
+    <p>Schedule · Track · Measure — a working tool for Steven &amp; Kelly (Chief Culture Officer)</p>
+  </div>
+  <div class="toolbar">
+    <button class="btn ghost" onclick="exportData()">⬇ Export data</button>
+    <button class="btn ghost" onclick="document.getElementById('imp').click()">⬆ Import</button>
+    <input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(this)">
+    <button class="btn ghost" onclick="exportCSV()">CSV</button>
+    <button class="btn ghost" onclick="window.print()">🖨 Print / PDF</button>
+    <button class="btn" onclick="resetData()">↺ Reset</button>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-tab="dash">Dashboard</button>
+  <button data-tab="tactics">Tactics Tracker</button>
+  <button data-tab="calendar">Annual Calendar</button>
+  <button data-tab="events">Community Events</button>
+  <button data-tab="pulse">Staff Pulse</button>
+  <button data-tab="budget">Budget</button>
+  <button data-tab="guide">Playbook Guide</button>
+</nav>
+
+<main>
+  <!-- DASHBOARD -->
+  <section class="tab active" id="dash">
+    <div class="grid kpis" id="kpiRow"></div>
+    <div class="row2">
+      <div class="card">
+        <h2 class="section"><span class="dot"></span>Cadence health — by category</h2>
+        <div id="catHealth"></div>
+      </div>
+      <div class="card">
+        <h2 class="section"><span class="dot"></span>This month's focus</h2>
+        <p class="help">Tactics due or recurring this month. Tick them off in the Tactics Tracker tab.</p>
+        <div id="thisMonth"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="section"><span class="dot"></span>Latest staff pulse (Start · Stop · Keep)</h2>
+      <p class="help">Most recent quarterly survey score. Update in the Staff Pulse tab.</p>
+      <div id="pulseSummary"></div>
+    </div>
+  </section>
+
+  <!-- TACTICS TRACKER -->
+  <section class="tab" id="tactics">
+    <h2 class="section"><span class="dot"></span>Culture Tactics Tracker</h2>
+    <p class="help">Every culture tactic Peach runs, with its target cadence, owner, status, last-done date and notes. Edit any cell — changes save automatically in this browser. Use <b>Export data</b> to back up or share with Steven.</p>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--green)"></i>On track</span>
+      <span><i class="swatch" style="background:var(--amber)"></i>Behind</span>
+      <span><i class="swatch" style="background:var(--red)"></i>Not started</span>
+      <span><i class="swatch" style="background:var(--blue)"></i>Paused</span>
+      <span><i class="swatch" style="background:var(--muted)"></i>Done (one-off)</span>
+    </div>
+    <div class="card" style="padding:6px 0">
+      <table id="tacticsTable">
+        <thead><tr>
+          <th data-sort="name">Tactic</th>
+          <th data-sort="category">Category</th>
+          <th data-sort="cadence">Cadence</th>
+          <th data-sort="owner">Owner</th>
+          <th data-sort="status">Status</th>
+          <th>Notes</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="btn addbtn" onclick="addTactic()">+ Add tactic</button>
+    <p class="save-note">💾 Data is saved in this browser automatically. To move it between computers or share with Steven, use <b>Export data</b> then <b>Import</b>.</p>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="tab" id="calendar">
+    <h2 class="section"><span class="dot"></span>Annual Culture Calendar</h2>
+    <p class="help">Peach's recurring year of culture, adapted from Kate's annual calendar. The monthly recurring activities run every month on top of these.</p>
+    <div class="cal" id="calGrid"></div>
+    <div class="card" style="margin-top:18px">
+      <h3 style="margin-top:0;font-size:14px">🔁 Monthly recurring activities</h3>
+      <ul style="margin:0;font-size:13.5px">
+        <li>Celebrate staff birthdays &amp; personal celebrations</li>
+        <li>Recognize work anniversaries</li>
+        <li>Staff socials &amp; wellness moments</li>
+        <li>Higher Purpose tracking (update the count / board)</li>
+        <li>1 culture post per week on social + 1 staff spotlight</li>
+        <li>Community fundraising &amp; volunteer initiatives</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- COMMUNITY EVENTS -->
+  <section class="tab" id="events">
+    <h2 class="section"><span class="dot"></span>Community Events</h2>
+    <p class="help">A working calendar of local Chatham-Kent events the team can join. This page can\'t auto-scan other websites (it\'s a static site) &mdash; so once a month, click the sources below, then add what you find. Known recurring CK events are pre-loaded. Everything saves in your browser and travels with Export / Import.</p>
+    <h3 style="margin:6px 0 4px;font-size:13px">\ud83d\udd0e Sources to scan (open in a new tab)</h3>
+    <div class="evsources" id="evSources"></div>
+    <div class="card">
+      <h3 style="margin-top:0;font-size:14px">Add an event</h3>
+      <div class="evform">
+        <div><label class="muted" style="font-size:12px">Event</label><input type="text" id="evName" placeholder="e.g. Habitat River Run"></div>
+        <div><label class="muted" style="font-size:12px">Date</label><input type="date" id="evDate"></div>
+        <div><label class="muted" style="font-size:12px">Type</label><input type="text" id="evTypeIn" placeholder="Run / Pickleball\u2026"></div>
+        <div><label class="muted" style="font-size:12px">Link (optional)</label><input type="text" id="evLink" placeholder="https://\u2026"></div>
+        <button class="btn" style="background:var(--peach);color:#fff" onclick="addEvent()">+ Add</button>
+      </div>
+      <input type="text" id="evNotes" placeholder="Notes (optional) \u2014 who\'s going, cost, register-by\u2026" style="margin-top:8px">
+    </div>
+    <div id="evList"></div>
+  </section>
+
+  <!-- PULSE -->
+  <section class="tab" id="pulse">
+    <h2 class="section"><span class="dot"></span>Staff Engagement Pulse</h2>
+    <p class="help">Run the <b>Start · Stop · Keep</b> survey quarterly. Score each dimension 1–10 from the team's responses (or a quick engagement rating) and log it here to watch the trend.</p>
+    <div class="card">
+      <h3 style="margin-top:0;font-size:14px">Log a pulse check</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end">
+        <div><label class="muted" style="font-size:12px">Period</label><input type="text" id="pPeriod" placeholder="e.g. Q3 2026"></div>
+        <div><label class="muted" style="font-size:12px">Belonging</label><input type="number" id="pBelong" min="0" max="10" step="0.1" placeholder="0-10"></div>
+        <div><label class="muted" style="font-size:12px">Recognition</label><input type="number" id="pRecog" min="0" max="10" step="0.1" placeholder="0-10"></div>
+        <div><label class="muted" style="font-size:12px">Communication</label><input type="number" id="pComm" min="0" max="10" step="0.1" placeholder="0-10"></div>
+        <div><label class="muted" style="font-size:12px">Participation %</label><input type="number" id="pPart" min="0" max="100" placeholder="% of team"></div>
+        <button class="btn" style="background:var(--peach);color:#fff" onclick="addPulse()">+ Log</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="card">
+        <h3 style="margin-top:0;font-size:14px">Trend</h3>
+        <div id="pulseTrend"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;font-size:14px">Logged checks</h3>
+        <table id="pulseTable"><thead><tr><th>Period</th><th class="num">Belong</th><th class="num">Recog</th><th class="num">Comm</th><th class="num">Avg</th><th class="num">Part%</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUDGET -->
+  <section class="tab" id="budget">
+    <h2 class="section"><span class="dot"></span>Culture Budget Tracker</h2>
+    <p class="help">Set a monthly culture budget, then log spend per tactic. The dashboard shows planned vs. actual so the budget stays on track across the year.</p>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div><label class="muted" style="font-size:12px">Monthly budget ($)</label><br><input type="number" id="monthlyBudget" style="width:140px" oninput="saveBudgetMeta();renderBudget()"></div>
+        <div><label class="muted" style="font-size:12px">Annual budget (auto)</label><div class="value" id="annualBudget" style="font-size:24px;font-weight:700">—</div></div>
+        <div style="flex:1"></div>
+        <div style="text-align:right"><label class="muted" style="font-size:12px">Spent to date</label><div class="value" id="spentTotal" style="font-size:24px;font-weight:700">$0</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 0">
+      <table id="budgetTable">
+        <thead><tr><th>Date</th><th>Tactic / item</th><th>Category</th><th class="num">Amount ($)</th><th>Notes</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="btn addbtn" onclick="addSpend()">+ Add spend</button>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="tab" id="guide">
+    <h2 class="section"><span class="dot"></span>Culture Playbook Guide</h2>
+    <p class="help">The "why and how" behind each tactic, drawn from Peach's Culture document, the CCO role description, and the Level 11 culture playbook. Use this with Kelly to onboard her into the Chief Culture Officer role.</p>
+    <div class="card" style="background:var(--peach-light);border-color:var(--peach)">
+      <b>The Peach culture model:</b> <span class="tagline">Culture → values → behaviour → change.</span>
+      <p style="margin:8px 0 0;font-size:13.5px">Culture is operationalized through three things working together: a <b>culture document</b> (the "why"), a <b>Chief Culture Officer</b> (weekly ownership — now Kelly), and a <b>culture playbook</b> of tactics that are <b>tangible, simple, and inexpensive</b>. Add one tactic at a time and let it stick before layering on the next.</p>
+    </div>
+    <div id="guideList"></div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- DEFAULT DATA ---------- */
+const DEFAULTS = {
+  budgetMeta:{monthly:300},
+  tactics:[
+    {name:"Higher Purpose campaign",category:"Higher Purpose",cadence:"Annual + monthly tracking",owner:"Kelly",status:"On track",lastDone:"",notes:"2026 cause: Three Oaks Respite Cabin. Track count on the clinic board (not $). Donate per assessment / per discharge / per Google review."},
+    {name:"Monthly High-5",category:"Recognition",cadence:"Monthly",owner:"Kelly",status:"On track",lastDone:"",notes:"Public shout-out recognizing a team member who lived the values."},
+    {name:"RAK for staff",category:"Recognition",cadence:"Ongoing / weekly",owner:"Kelly",status:"On track",lastDone:"",notes:"Random act of kindness for a staff member."},
+    {name:"RAK for patient",category:"Patient & Community",cadence:"Ongoing / weekly",owner:"All staff",status:"On track",lastDone:"",notes:"Random act of kindness for a patient — can tie to Higher Purpose."},
+    {name:"Birthday treats & shout-outs",category:"Recognition",cadence:"Per birthday",owner:"Kelly",status:"On track",lastDone:"",notes:"Treat + acknowledgement on staff birthdays."},
+    {name:"Work anniversary recognition",category:"Recognition",cadence:"Per anniversary",owner:"Kelly",status:"On track",lastDone:"",notes:"Acknowledge staff work anniversaries."},
+    {name:"Staff get-togethers",category:"Events",cadence:"Quarterly",owner:"Kelly",status:"On track",lastDone:"",notes:"Social outings ~4x/year. SOP exists (per transition doc)."},
+    {name:"Summer party",category:"Events",cadence:"Annual (Jul/Aug)",owner:"Kelly",status:"Not started",lastDone:"",notes:"End-of-summer event — e.g. golf or pickleball outing."},
+    {name:"Christmas party",category:"Events",cadence:"Annual (Dec)",owner:"Kelly",status:"Not started",lastDone:"",notes:"Sit-down dinner, partners invited. Includes Secret Santa / pot-luck / gift exchange."},
+    {name:"Staff pot-lucks (baby showers, send-offs)",category:"Events",cadence:"As they come up",owner:"Kelly",status:"On track",lastDone:"",notes:"Baby showers, staff send-offs, the Dec 20 Christmas pot-luck, and other one-off celebrations."},
+    {name:"10-Review Month Lunch",category:"Recognition",cadence:"Monthly (if 10+ reviews)",owner:"Steven",status:"On track",lastDone:"",notes:"Steven buys the team lunch whenever the clinic earns 10+ Google reviews in the previous month. Check review count at month-end."},
+    {name:"Staff swag",category:"Staff Experience",cadence:"Quarterly / as needed",owner:"Kelly",status:"On track",lastDone:"",notes:"Branded gear for the team."},
+    {name:"Staff uniforms",category:"Staff Experience",cadence:"Annual refresh",owner:"Kelly",status:"On track",lastDone:"",notes:"Order & refresh uniforms. Shirt sizes sheet in CCO folder."},
+    {name:"Themed shirt days",category:"Staff Experience",cadence:"Monthly / seasonal",owner:"Kelly",status:"On track",lastDone:"",notes:"Fun themed dress days."},
+    {name:"Music in clinic",category:"Staff Experience",cadence:"Daily / ongoing",owner:"All staff",status:"On track",lastDone:"",notes:"Sets the clinic vibe."},
+    {name:"Slack / clinic communications culture",category:"Communications",cadence:"Daily / ongoing",owner:"Kelly",status:"On track",lastDone:"",notes:"Keep internal comms warm, on-brand, celebratory."},
+    {name:"Clinical meetings tone-setting",category:"Communications",cadence:"Monthly",owner:"Steven + Kelly",status:"On track",lastDone:"",notes:"Open meetings with culture/values moment."},
+    {name:"Social media staff spotlight",category:"Patient & Community",cadence:"Weekly",owner:"Kelly",status:"On track",lastDone:"",notes:"Feature a team member on social."},
+    {name:"Promote culture on social media",category:"Patient & Community",cadence:"Weekly (1 culture post)",owner:"Kelly",status:"On track",lastDone:"",notes:"1 of the 5 weekly content buckets is 'culture'."},
+    {name:"Patient graduation process",category:"Patient & Community",cadence:"Per patient",owner:"All clinicians",status:"On track",lastDone:"",notes:"Celebrate patients completing their plan of care."},
+    {name:"NPS card draws",category:"Patient & Community",cadence:"Monthly",owner:"Kelly",status:"On track",lastDone:"",notes:"Collect feedback cards; monthly prize draw. Doubles as a patient-experience signal."},
+    {name:"Culture onboarding (new staff)",category:"Staff Experience",cadence:"Per new hire",owner:"Kelly",status:"On track",lastDone:"",notes:"Welcome new team members into the culture from day one."},
+    {name:"Clinician one-on-ones",category:"Staff Experience",cadence:"Monthly / quarterly",owner:"Steven + leads",status:"On track",lastDone:"",notes:"Regular check-ins; surface culture wins & concerns."},
+    {name:"Start · Stop · Keep survey",category:"Staff Experience",cadence:"Quarterly",owner:"Kelly",status:"On track",lastDone:"",notes:"The core engagement pulse — log results in the Staff Pulse tab."},
+    {name:"Charting room organization & appearance",category:"Staff Experience",cadence:"Monthly",owner:"All staff",status:"On track",lastDone:"",notes:"Keep back-of-house tidy and welcoming."},
+    {name:"Picture frames / clinic display",category:"Staff Experience",cadence:"As needed",owner:"Kelly",status:"On track",lastDone:"",notes:"Team photos & culture moments displayed in clinic."},
+    {name:"April Fools / morale moments",category:"Staff Experience",cadence:"Seasonal",owner:"Kelly",status:"Paused",lastDone:"",notes:"One-off fun (e.g. April 2026 photo prank). Can pause without revenue impact."}
+  ],
+  events:[
+    {name:"Cornhole for Hospice",date:"2026-02-21",type:"Cornhole",link:"https://chathamkenthospicefoundation.com/cornhole/",notes:"Charity tournament for CK Hospice. Confirm exact date on the site."},
+    {name:"Hike for Hospice",date:"2026-05-03",type:"Walk",link:"https://www.chathamkenthospice.com/upcoming-events/",notes:"Annual hospice walk. Confirm date on the site."},
+    {name:"CK Chamber Business Excellence Awards",date:"2026-06-04",type:"Networking",link:"https://business.chatham-kentchamber.ca/events/calendar",notes:"Good for referral relationships."},
+    {name:"CK Chamber Golf Tournament",date:"2026-06-23",type:"Golf",link:"https://business.chatham-kentchamber.ca/events/calendar",notes:"Networking + team outing."},
+    {name:"CK Pickleball \u2013 summer season opens",date:"2026-05-01",type:"Pickleball",link:"https://ckpickleball.com/",notes:"Memberships May 1\u2013Sep 30; lessons at St. Clair HealthPlex; youth camp in July."},
+    {name:"CornTogether @ Sons of Kent",date:"2026-08-20",type:"Cornhole",link:"https://raceroster.com/search?q=chatham-kent",notes:"Big local cornhole tournament (usually August). Confirm 2026 date."},
+    {name:"Habitat for Humanity CK River Run",date:"2026-09-20",type:"Run",link:"https://habitatchatham-kent.ca/events/",notes:"5K / 10K / half. Great team + charity event."},
+    {name:"Chatham Runners Club \u2013 monthly group run",date:"",type:"Run",link:"https://chathamrunnersclub.com/",notes:"Recurring: 3rd Saturday each month, Sheppard Kollock Park, 8 a.m."},
+    {name:"Jordan\u2019s Run the Runway 5K \u2013 Chatham-Kent",date:"2026-09-11",type:"Run",link:"https://raceroster.com/events/2026/114360/jordans-run-the-runway-5k-series-chatham-kent",notes:"5K run / walk / roll at the CK Municipal Airport (Merlin), Fri 5:30 p.m. YMCA fundraiser \u2014 team-friendly, all abilities."},
+    {name:"Crowfest Chatham-Kent",date:"2026-09-16",type:"Festival",link:"https://crowfestck.com/",notes:"Downtown Chatham festival (Sep 16\u201319). Great community presence and photo opportunity."},
+    {name:"CK Pickleball \u2013 Tuesday Night Summer League",date:"2026-07-14",type:"Pickleball",link:"https://ckpickleball.com/our-events/",notes:"Tuesdays Jul 14, 21 and 28, JMSS Doug Allin courts. Members\u2019 summer league."}
+  ],
+  pulses:[],
+  spends:[]
+};
+
+const STATUS_COLORS={"On track":"var(--green)","Ongoing":"#2E9E8F","Behind":"var(--amber)","Not started":"var(--red)","Paused":"var(--blue)","Done":"var(--muted)"};
+const STATUSES=["On track","Ongoing","Behind","Not started","Paused","Done"];
+const CATEGORIES=["Higher Purpose","Recognition","Staff Experience","Patient & Community","Communications","Events"];
+
+const CALENDAR=[
+  ["January",["Annual goals &amp; Higher-Purpose review","New-year goodie basket delivery"]],
+  ["February",["Valentine's Day women's shelter drive"]],
+  ["March",["Spring staff social","Spring colouring contest"]],
+  ["April",["April Fools / morale moment"]],
+  ["May",["National PT Month","Spring team event"]],
+  ["June",["Mid-year culture check-in"]],
+  ["July",["Summer team appreciation","Summer party / outing"]],
+  ["August",["Summer outing (golf / pickleball)"]],
+  ["September",["Soup Group launches","Stroller Strides Reunion"]],
+  ["October",["Halloween colouring contest","Costume day"]],
+  ["November",["Holiday planning","Team recognition activities"]],
+  ["December",["Holiday party","Annual awards / fun acknowledgements","Christmas pot-luck (Dec 20)","Secret Santa"]]
+];
+
+const GUIDE=[
+  ["Higher Purpose campaign","Higher Purpose","The clinic rallies behind a cause bigger than money. Pick an annual cause (2026: Three Oaks Respite Cabin), then make giving visible and tied to clinic activity.","Donate a set amount per assessment, per discharge, or per Google review. Keep a running <b>count</b> (not dollars) on a whiteboard or poster and update it often. Promote on social and in community collabs.","Lbs/units on the board; total raised; staff & patient participation."],
+  ["Monthly High-5","Recognition","A monthly public recognition of a team member who lived the values.","Pick a recipient each month, call it out in a meeting or on Slack, keep it specific to a behaviour.","Done each month (cadence)."],
+  ["RAK (staff & patient)","Recognition","Random acts of kindness — small, spontaneous, genuine.","Empower everyone to do them; can tie patient RAKs to the Higher Purpose.","Count of RAKs / month; pulse feedback."],
+  ["Birthdays & anniversaries","Recognition","Never let a birthday or work anniversary pass unmarked.","Maintain a dated list; treat + shout-out on the day.","All birthdays/anniversaries acknowledged on time."],
+  ["10-Review Month Lunch","Recognition","A team reward that doubles as a review-generation nudge: when the clinic earns 10+ Google reviews in a month, Steven buys the team lunch.","At month-end, check the Google review count for the previous month. If it's 10 or more, schedule the team lunch and celebrate it.","Reviews ≥10 → lunch bought; track months hit vs. missed."],
+  ["Staff get-togethers, parties & pot-lucks","Events","Quarterly socials, the anchor summer and Christmas events, plus pot-lucks for baby showers and send-offs build belonging.","Quarterly outing; summer outing (golf/pickleball); Christmas dinner with Secret Santa; pot-lucks as life events come up. SOPs exist.","Held on cadence; participation %; pulse 'belonging' score."],
+  ["Staff swag, uniforms & themed days","Staff Experience","Identity and fun — branded gear, fresh uniforms, themed dress days.","Use the shirt-sizes sheet in the CCO folder; plan themed days into the calendar.","Items ordered; participation in themed days."],
+  ["Music & clinic environment","Staff Experience","The everyday vibe — music, tidy charting room, team photos on display.","Shared playlist; monthly tidy of back-of-house; refresh the photo display.","Monthly check done; pulse 'environment' feedback."],
+  ["Slack & communications culture","Communications","Internal comms carry the culture — warm, on-brand, celebratory.","Own the tone in Slack; celebrate wins; keep announcements human.","Engagement in channels; pulse 'communication' score."],
+  ["Clinical meeting tone-setting","Communications","Open meetings with a culture or values moment so it stays front-of-mind.","Add a standing culture item to the monthly meeting agenda.","Culture moment in each meeting."],
+  ["Social spotlights & culture posts","Patient & Community","Show the culture to the world — 1 culture post/week + weekly staff spotlight.","Plan into the weekly content buckets (culture is 1 of 5).","Posts published on cadence; reach/engagement."],
+  ["Patient graduation & NPS card draws","Patient & Community","Celebrate patients finishing care; collect feedback with a monthly prize draw.","Graduation ritual at discharge; NPS cards collected and drawn monthly.","Graduations celebrated; NPS score; cards collected."],
+  ["Culture onboarding & one-on-ones","Staff Experience","Bring new staff into the culture on day one; keep everyone connected with regular check-ins.","Run a culture onboarding for each new hire; monthly/quarterly one-on-ones.","Every new hire onboarded; one-on-ones held."],
+  ["Start · Stop · Keep survey","Staff Experience","The core engagement pulse — ask the team what to start, stop, and keep doing.","Run quarterly; score belonging, recognition & communication; log in the Staff Pulse tab and act on themes.","Quarterly score & participation %; trend over time."]
+];
+
+/* ---------- STATE ---------- */
+let DATA=load();
+if(!Array.isArray(DATA.events))DATA.events=JSON.parse(JSON.stringify(DEFAULTS.events));else{DEFAULTS.events.forEach(function(de){if(!DATA.events.some(function(e){return e.name===de.name;}))DATA.events.push(JSON.parse(JSON.stringify(de)));});}
+function load(){
+  try{const s=localStorage.getItem('peachCulture');if(s)return JSON.parse(s);}catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function save(){localStorage.setItem('peachCulture',JSON.stringify(DATA));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ---------- NAV ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');
+});
+
+/* ---------- DASHBOARD ---------- */
+function renderDash(){
+  const t=DATA.tactics;
+  const total=t.length;
+  const onTrack=t.filter(x=>x.status==="On track"||x.status==="Ongoing").length;
+  const behind=t.filter(x=>x.status==="Behind"||x.status==="Not started").length;
+  const active=t.filter(x=>x.status!=="Paused"&&x.status!=="Done").length;
+  const pct=active?Math.round((onTrack/active)*100):0;
+  const latest=DATA.pulses[DATA.pulses.length-1];
+  const pAvg=latest?(((+latest.belong||0)+(+latest.recog||0)+(+latest.comm||0))/3).toFixed(1):"—";
+  const spent=DATA.spends.reduce((s,x)=>s+(+x.amount||0),0);
+  const annual=(DATA.budgetMeta.monthly||0)*12;
+  const kpis=[
+    {label:"Total tactics",value:total,sub:active+" active · "+(total-active)+" paused/done"},
+    {label:"On-track rate",value:pct+"%",sub:onTrack+" of "+active+" active on track",bar:pct},
+    {label:"Needs attention",value:behind,sub:"behind or not started"},
+    {label:"Latest pulse",value:pAvg,sub:latest?("/10 · "+latest.period):"no check logged"},
+    {label:"Budget used",value:annual?Math.round(spent/annual*100)+"%":"—",sub:"$"+spent.toLocaleString()+" of $"+annual.toLocaleString()+" yr",bar:annual?Math.min(100,Math.round(spent/annual*100)):0}
+  ];
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`
+    <div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div>
+    ${k.bar!==undefined?`<div class="bar"><span style="width:${k.bar}%;background:${k.bar>=70?'var(--green)':k.bar>=40?'var(--amber)':'var(--red)'}"></span></div>`:''}</div>`).join('');
+
+  // category health
+  const ch=CATEGORIES.map(c=>{
+    const items=t.filter(x=>x.category===c&&x.status!=="Paused"&&x.status!=="Done");
+    const ok=items.filter(x=>x.status==="On track"||x.status==="Ongoing").length;
+    const p=items.length?Math.round(ok/items.length*100):0;
+    return {c,p,n:items.length};
+  }).filter(x=>x.n>0);
+  document.getElementById('catHealth').innerHTML='<div class="pulsebars">'+ch.map(x=>`
+    <div class="pulserow"><div class="pname">${x.c}</div>
+    <div class="ptrack"><span style="width:${x.p}%;background:${x.p>=70?'var(--green)':x.p>=40?'var(--amber)':'var(--red)'}"></span></div>
+    <div class="pscore">${x.p}%</div></div>`).join('')+'</div>';
+
+  // this month focus
+  const m=new Date().toLocaleString('en-US',{month:'long'});
+  const calItems=(CALENDAR.find(x=>x[0]===m)||[m,[]])[1];
+  const recurring=t.filter(x=>/month|week|daily|ongoing/i.test(x.cadence)&&x.status!=="Paused").slice(0,8);
+  document.getElementById('thisMonth').innerHTML=`<b>${m} calendar:</b><ul style="margin:6px 0 12px">${calItems.length?calItems.map(i=>`<li>${i}</li>`).join(''):'<li class="muted">No fixed events — focus on recurring tactics</li>'}</ul><b>Recurring this month:</b><ul style="margin:6px 0 0">${recurring.map(x=>`<li>${x.name} <span class="muted">(${x.cadence})</span></li>`).join('')}</ul>`;
+
+  // pulse summary
+  document.getElementById('pulseSummary').innerHTML=latest?`
+    <div class="pulsebars">
+      ${[['Belonging',latest.belong],['Recognition',latest.recog],['Communication',latest.comm]].map(([n,v])=>{const w=(+v||0)*10;return `<div class="pulserow"><div class="pname">${n}</div><div class="ptrack"><span style="width:${w}%;background:${w>=70?'var(--green)':w>=40?'var(--amber)':'var(--red)'}"></span></div><div class="pscore">${(+v||0).toFixed(1)}</div></div>`;}).join('')}
+    </div><p class="muted" style="font-size:12px;margin:10px 0 0">${latest.period} · ${latest.part||'—'}% participation</p>`
+    :'<p class="muted">No pulse logged yet. Run a Start·Stop·Keep survey and log it in the Staff Pulse tab.</p>';
+}
+
+/* ---------- TACTICS TABLE ---------- */
+let sortKey='category',sortDir=1;
+function renderTactics(){
+  const tb=document.querySelector('#tacticsTable tbody');
+  const rows=[...DATA.tactics].sort((a,b)=>{const x=(a[sortKey]||'').toString().toLowerCase(),y=(b[sortKey]||'').toString().toLowerCase();return x<y?-sortDir:x>y?sortDir:0;});
+  tb.innerHTML=rows.map(r=>{const i=DATA.tactics.indexOf(r);return `
+    <tr>
+      <td><input type="text" value="${esc(r.name)}" onchange="upd(${i},'name',this.value)"></td>
+      <td><select onchange="upd(${i},'category',this.value)">${CATEGORIES.map(c=>`<option ${c===r.category?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><input type="text" value="${esc(r.cadence)}" onchange="upd(${i},'cadence',this.value)"></td>
+      <td><input type="text" value="${esc(r.owner)}" onchange="upd(${i},'owner',this.value)"></td>
+      <td><select class="status" style="background:${STATUS_COLORS[r.status]};color:#fff" onchange="upd(${i},'status',this.value)">${STATUSES.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td class="notescell"><textarea rows="4" placeholder="Add notes / back-and-forth…" onchange="upd(${i},'notes',this.value)">${esc(r.notes)}</textarea></td>
+      <td><button class="icon-btn" title="Delete" onclick="delTactic(${i})">✕</button></td>
+    </tr>`;}).join('');
+}
+function upd(i,k,v){DATA.tactics[i][k]=v;save();if(k==='status'||k==='category')renderTactics();renderDash();}
+function addTactic(){DATA.tactics.push({name:"New tactic",category:"Staff Experience",cadence:"Monthly",owner:"Kelly",status:"Not started",lastDone:"",notes:""});save();renderTactics();renderDash();toast("Tactic added");}
+function delTactic(i){if(confirm("Delete this tactic?")){DATA.tactics.splice(i,1);save();renderTactics();renderDash();}}
+document.querySelectorAll('#tacticsTable th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}renderTactics();});
+
+/* ---------- CALENDAR ---------- */
+function renderCalendar(){
+  document.getElementById('calGrid').innerHTML=CALENDAR.map(([m,items])=>`
+    <div class="month"><h3>${m}</h3><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+}
+
+/* ---------- COMMUNITY EVENTS ---------- */
+const EVSOURCES=[
+["CK Community Events","https://www.chatham-kent.ca/visitck/doandsee/eventsandfestivals/Pages/default.aspx"],
+["CK Recreation Leagues","https://www.chatham-kent.ca/explore/Pages/RecreationPrograms.aspx"],
+["CK Pickleball Club","https://ckpickleball.com/"],
+["Chatham Runners Club","https://chathamrunnersclub.com/"],
+["Habitat River Run","https://habitatchatham-kent.ca/events/"],
+["CK Hospice Events","https://www.chathamkenthospice.com/upcoming-events/"],
+["Race Roster (CK)","https://raceroster.com/search?q=chatham-kent"],
+["CK Chamber Events","https://business.chatham-kentchamber.ca/events/calendar"],
+["CK Sports Network","https://cksn.ca/category/recreation/"],
+["AllEvents Chatham","https://allevents.in/chatham-on"],
+["Eventbrite CK","https://www.eventbrite.ca/d/canada--chatham-kent/events/"],
+["Facebook: CK Rec","https://www.facebook.com/ckrecreation/"]
+];
+const EVMONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function addEvent(){
+  const name=val('evName');if(!name){toast("Enter an event name");return;}
+  DATA.events.push({name:name,date:val('evDate'),type:val('evTypeIn'),link:val('evLink'),notes:val('evNotes')});
+  save();['evName','evDate','evTypeIn','evLink','evNotes'].forEach(id=>document.getElementById(id).value='');
+  renderEvents();toast("Event added");
+}
+function delEvent(i){if(confirm("Remove this event?")){DATA.events.splice(i,1);save();renderEvents();}}
+function evRow(e){
+  const d=e.date?new Date(e.date+'T00:00').toLocaleDateString('en-CA',{month:'short',day:'numeric'}):'\u2014';
+  const nm=e.link?`<a href="${e.link}" target="_blank" rel="noopener">${esc(e.name)}</a>`:esc(e.name);
+  return `<div class="evitem"><div class="evdate">${d}</div><div class="evbody"><div class="evname">${nm}${e.type?`<span class="evtype">${esc(e.type)}</span>`:''}</div>${e.notes?`<div class="evmeta">${esc(e.notes)}</div>`:''}</div><button class="icon-btn" title="Remove" onclick="delEvent(${e.i})">\u2715</button></div>`;
+}
+function renderEvents(){
+  document.getElementById('evSources').innerHTML=EVSOURCES.map(x=>`<a href="${x[1]}" target="_blank" rel="noopener">${x[0]}</a>`).join('');
+  const evs=DATA.events.map((e,i)=>Object.assign({},e,{i:i}));
+  const dated=evs.filter(e=>e.date).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  const undated=evs.filter(e=>!e.date);
+  const groups={};
+  dated.forEach(e=>{const dt=new Date(e.date+'T00:00');const key=dt.getFullYear()+'-'+String(dt.getMonth()).padStart(2,'0');(groups[key]=groups[key]||[]).push(e);});
+  let html='';
+  Object.keys(groups).sort().forEach(k=>{const parts=k.split('-');html+=`<div class="evmonth"><h4>${EVMONTHS[+parts[1]]} ${parts[0]}</h4>`+groups[k].map(evRow).join('')+`</div>`;});
+  if(undated.length)html+=`<div class="evmonth"><h4>Recurring / date TBC</h4>`+undated.map(evRow).join('')+`</div>`;
+  document.getElementById('evList').innerHTML=html||'<p class="muted">No events yet \u2014 check the sources above and add some.</p>';
+}
+
+/* ---------- PULSE ---------- */
+function addPulse(){
+  const p={period:val('pPeriod'),belong:val('pBelong'),recog:val('pRecog'),comm:val('pComm'),part:val('pPart')};
+  if(!p.period){toast("Enter a period");return;}
+  DATA.pulses.push(p);save();
+  ['pPeriod','pBelong','pRecog','pComm','pPart'].forEach(id=>document.getElementById(id).value='');
+  renderPulse();renderDash();toast("Pulse logged");
+}
+function delPulse(i){DATA.pulses.splice(i,1);save();renderPulse();renderDash();}
+function renderPulse(){
+  const tb=document.querySelector('#pulseTable tbody');
+  tb.innerHTML=DATA.pulses.map((p,i)=>{const avg=(((+p.belong||0)+(+p.recog||0)+(+p.comm||0))/3).toFixed(1);return `
+    <tr><td>${esc(p.period)}</td><td class="num">${(+p.belong||0).toFixed(1)}</td><td class="num">${(+p.recog||0).toFixed(1)}</td><td class="num">${(+p.comm||0).toFixed(1)}</td><td class="num"><b>${avg}</b></td><td class="num">${p.part||'—'}</td><td><button class="icon-btn" onclick="delPulse(${i})">✕</button></td></tr>`;}).join('')||'<tr><td colspan="7" class="muted">No checks logged yet.</td></tr>';
+  const el=document.getElementById('pulseTrend');
+  if(!DATA.pulses.length){el.innerHTML='<p class="muted">Log a pulse check to see the trend.</p>';return;}
+  el.innerHTML='<div class="pulsebars">'+DATA.pulses.map(p=>{const avg=(((+p.belong||0)+(+p.recog||0)+(+p.comm||0))/3);const w=avg*10;return `<div class="pulserow"><div class="pname">${esc(p.period)}</div><div class="ptrack"><span style="width:${w}%;background:${w>=70?'var(--green)':w>=40?'var(--amber)':'var(--red)'}"></span></div><div class="pscore">${avg.toFixed(1)}</div></div>`;}).join('')+'</div>';
+}
+
+/* ---------- BUDGET ---------- */
+function saveBudgetMeta(){DATA.budgetMeta.monthly=+document.getElementById('monthlyBudget').value||0;save();}
+function addSpend(){DATA.spends.push({date:new Date().toISOString().slice(0,10),item:"",category:"Events",amount:0,notes:""});save();renderBudget();}
+function delSpend(i){DATA.spends.splice(i,1);save();renderBudget();}
+function updSpend(i,k,v){DATA.spends[i][k]=v;save();if(k==='amount')renderBudget();renderDash();}
+function renderBudget(){
+  document.getElementById('monthlyBudget').value=DATA.budgetMeta.monthly||'';
+  const annual=(DATA.budgetMeta.monthly||0)*12;
+  document.getElementById('annualBudget').textContent=annual?'$'+annual.toLocaleString():'—';
+  const spent=DATA.spends.reduce((s,x)=>s+(+x.amount||0),0);
+  document.getElementById('spentTotal').textContent='$'+spent.toLocaleString();
+  const tb=document.querySelector('#budgetTable tbody');
+  tb.innerHTML=DATA.spends.map((s,i)=>`
+    <tr><td><input type="date" value="${s.date||''}" onchange="updSpend(${i},'date',this.value)"></td>
+    <td><input type="text" value="${esc(s.item)}" onchange="updSpend(${i},'item',this.value)"></td>
+    <td><select onchange="updSpend(${i},'category',this.value)">${CATEGORIES.map(c=>`<option ${c===s.category?'selected':''}>${c}</option>`).join('')}</select></td>
+    <td class="num"><input type="number" style="text-align:right" value="${s.amount||0}" onchange="updSpend(${i},'amount',+this.value)"></td>
+    <td><input type="text" value="${esc(s.notes)}" onchange="updSpend(${i},'notes',this.value)"></td>
+    <td><button class="icon-btn" onclick="delSpend(${i})">✕</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">No spend logged yet.</td></tr>';
+}
+
+/* ---------- GUIDE ---------- */
+function renderGuide(){
+  document.getElementById('guideList').innerHTML=GUIDE.map(g=>`
+    <details class="guide"><summary><span class="pill cat">${g[1]}</span>${g[0]}<span class="chev">▶</span></summary>
+    <div class="body"><p><b>What &amp; why:</b> ${g[2]}</p><p><b>How to run it:</b> ${g[3]}</p><p><b>How to measure:</b> <span class="muted">${g[4]}</span></p></div></details>`).join('');
+}
+
+/* ---------- UTIL ---------- */
+function esc(s){return (s||'').toString().replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function val(id){return document.getElementById(id).value;}
+function exportData(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});dl(blob,'peach-culture-data.json');toast("Data exported");}
+function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{DATA=JSON.parse(e.target.result);save();renderAll();toast("Data imported");}catch(err){alert("Could not read that file.");}};r.readAsText(f);}
+function exportCSV(){
+  let csv="Tactic,Category,Cadence,Owner,Status,Last done,Notes\n";
+  DATA.tactics.forEach(t=>{csv+=[t.name,t.category,t.cadence,t.owner,t.status,t.lastDone,t.notes].map(x=>'"'+(x||'').toString().replace(/"/g,'""')+'"').join(',')+"\n";});
+  dl(new Blob([csv],{type:'text/csv'}),'peach-culture-tactics.csv');toast("CSV exported");
+}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function resetData(){if(confirm("Reset everything back to the starting template? Your current data will be lost (export first if you want a backup).")){DATA=JSON.parse(JSON.stringify(DEFAULTS));save();renderAll();toast("Reset to template");}}
+function renderAll(){renderDash();renderTactics();renderCalendar();renderEvents();renderPulse();renderBudget();renderGuide();}
+renderAll();
+</script>
+</body>
+</html>
